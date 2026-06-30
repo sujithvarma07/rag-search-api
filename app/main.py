@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 
+from app.config import Settings
+
+settings = Settings()
+
 app = FastAPI(
     title="RAG Search API",
     description="Semantic document search using retrieval-augmented generation",

@@ -27,5 +27,4 @@ chroma_db/
 .env.local
 setup.command
 fix.command
-setup.command
-fix.command
+push.command
