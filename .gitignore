@@ -28,3 +28,4 @@ chroma_db/
 setup.command
 fix.command
 push.command
+.push_day
