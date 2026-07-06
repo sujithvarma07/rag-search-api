@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api import ingest
+from app.api import ingest, search
 from app.config import Settings
 
 settings = Settings()
@@ -12,6 +12,7 @@ app = FastAPI(
 )
 
 app.include_router(ingest.router)
+app.include_router(search.router)
 
 
 @app.get("/health")
