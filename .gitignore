@@ -29,3 +29,6 @@ setup.command
 fix.command
 push.command
 .push_day
+
+# Testing
+.pytest_cache/
