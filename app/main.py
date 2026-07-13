@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api import ingest, search
 from app.config import Settings
 from app.utils.errors import register_exception_handlers
+from app.utils.logging import RequestLoggingMiddleware
 
 settings = Settings()
 
@@ -11,6 +12,8 @@ app = FastAPI(
     description="Semantic document search using retrieval-augmented generation",
     version="0.1.0",
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 register_exception_handlers(app)
 
