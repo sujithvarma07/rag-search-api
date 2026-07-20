@@ -5,6 +5,7 @@ from app.core.embeddings import EmbeddingService
 from app.db.vector_store import VectorStore
 from app.models import IngestRequest
 from app.utils.chunking import chunk_text
+from app.utils.errors import DocumentNotFoundError
 
 router = APIRouter()
 
@@ -42,3 +43,13 @@ async def ingest_documents(request: IngestRequest) -> dict[str, int]:
     )
 
     return {"ingested": len(request.documents), "chunks": len(chunk_texts)}
+
+
+@router.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str) -> dict[str, int]:
+    deleted_chunks = vector_store.delete(doc_id)
+
+    if deleted_chunks == 0:
+        raise DocumentNotFoundError(doc_id)
+
+    return {"deleted_chunks": deleted_chunks}

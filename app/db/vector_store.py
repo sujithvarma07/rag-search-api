@@ -52,5 +52,12 @@ class VectorStore:
 
         return matches
 
-    def delete(self, doc_id: str) -> None:
-        self.collection.delete(ids=[doc_id])
+    def delete(self, doc_id: str) -> int:
+        existing = self.collection.get(where={"parent_id": doc_id})
+        ids = existing.get("ids", [])
+
+        if not ids:
+            return 0
+
+        self.collection.delete(ids=ids)
+        return len(ids)
