@@ -28,4 +28,7 @@ async def search(query: SearchQuery) -> SearchResponse:
         for match in matches
     ]
 
+    if query.min_score is not None:
+        results = [result for result in results if result.score >= query.min_score]
+
     return SearchResponse(results=results, query=query.query)

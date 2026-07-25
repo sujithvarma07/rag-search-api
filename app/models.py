@@ -14,6 +14,7 @@ class IngestRequest(BaseModel):
 class SearchQuery(BaseModel):
     query: str
     top_k: int = 5
+    min_score: float | None = None
 
 
 class SearchResult(BaseModel):
