@@ -15,6 +15,7 @@ class SearchQuery(BaseModel):
     query: str
     top_k: int = 5
     min_score: float | None = None
+    generate_answer: bool = False
 
 
 class SearchResult(BaseModel):
@@ -25,3 +26,4 @@ class SearchResult(BaseModel):
 class SearchResponse(BaseModel):
     results: list[SearchResult]
     query: str
+    answer: str | None = None

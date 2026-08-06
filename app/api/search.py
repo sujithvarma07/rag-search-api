@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.config import settings
 from app.core.embeddings import EmbeddingService
+from app.core.llm import LLMService
 from app.db.vector_store import VectorStore
 from app.models import Document, SearchQuery, SearchResponse, SearchResult
 
@@ -9,6 +10,7 @@ router = APIRouter()
 
 embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)
+llm_service = LLMService(settings)
 
 
 @router.post("/search")
@@ -31,4 +33,9 @@ async def search(query: SearchQuery) -> SearchResponse:
     if query.min_score is not None:
         results = [result for result in results if result.score >= query.min_score]
 
-    return SearchResponse(results=results, query=query.query)
+    answer = None
+    if query.generate_answer and results:
+        context_chunks = [result.document.content for result in results]
+        answer = await llm_service.generate_answer(query.query, context_chunks)
+
+    return SearchResponse(results=results, query=query.query, answer=answer)
