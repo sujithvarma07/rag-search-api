@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.config import settings
 from app.core.embeddings import EmbeddingService
 from app.core.llm import LLMService
 from app.db.vector_store import VectorStore
 from app.models import Document, SearchQuery, SearchResponse, SearchResult
+from app.utils.limiter import limiter
 
 router = APIRouter()
 
@@ -14,7 +15,8 @@ llm_service = LLMService(settings)
 
 
 @router.post("/search")
-async def search(query: SearchQuery) -> SearchResponse:
+@limiter.limit("10/minute")
+async def search(request: Request, query: SearchQuery) -> SearchResponse:
     embeddings = await embedding_service.embed([query.query])
 
     # fetch enough candidates from the vector store to cover the requested page,

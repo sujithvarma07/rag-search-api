@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.config import settings
 from app.core.embeddings import EmbeddingService
@@ -6,6 +6,7 @@ from app.db.vector_store import VectorStore
 from app.models import IngestRequest
 from app.utils.chunking import chunk_text
 from app.utils.errors import DocumentNotFoundError
+from app.utils.limiter import limiter
 
 router = APIRouter()
 
@@ -14,12 +15,13 @@ vector_store = VectorStore(settings)
 
 
 @router.post("/documents")
-async def ingest_documents(request: IngestRequest) -> dict[str, int]:
+@limiter.limit("10/minute")
+async def ingest_documents(request: Request, payload: IngestRequest) -> dict[str, int]:
     chunk_ids: list[str] = []
     chunk_texts: list[str] = []
     chunk_metadatas: list[dict] = []
 
-    for document in request.documents:
+    for document in payload.documents:
         chunks = chunk_text(document.content)
 
         for index, chunk in enumerate(chunks):
@@ -42,7 +44,7 @@ async def ingest_documents(request: IngestRequest) -> dict[str, int]:
         metadatas=chunk_metadatas,
     )
 
-    return {"ingested": len(request.documents), "chunks": len(chunk_texts)}
+    return {"ingested": len(payload.documents), "chunks": len(chunk_texts)}
 
 
 @router.delete("/documents/{doc_id}")
