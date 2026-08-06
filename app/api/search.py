@@ -16,7 +16,11 @@ llm_service = LLMService(settings)
 @router.post("/search")
 async def search(query: SearchQuery) -> SearchResponse:
     embeddings = await embedding_service.embed([query.query])
-    matches = vector_store.query(embedding=embeddings[0], n_results=query.top_k)
+
+    # fetch enough candidates from the vector store to cover the requested page,
+    # falling back to top_k when it already covers the requested window
+    fetch_count = max(query.top_k, query.page * query.page_size)
+    matches = vector_store.query(embedding=embeddings[0], n_results=fetch_count)
 
     results = [
         SearchResult(
@@ -33,9 +37,20 @@ async def search(query: SearchQuery) -> SearchResponse:
     if query.min_score is not None:
         results = [result for result in results if result.score >= query.min_score]
 
+    total = len(results)
+    offset = (query.page - 1) * query.page_size
+    page_results = results[offset:offset + query.page_size]
+
     answer = None
-    if query.generate_answer and results:
-        context_chunks = [result.document.content for result in results]
+    if query.generate_answer and page_results:
+        context_chunks = [result.document.content for result in page_results]
         answer = await llm_service.generate_answer(query.query, context_chunks)
 
-    return SearchResponse(results=results, query=query.query, answer=answer)
+    return SearchResponse(
+        results=page_results,
+        query=query.query,
+        answer=answer,
+        page=query.page,
+        page_size=query.page_size,
+        total=total,
+    )

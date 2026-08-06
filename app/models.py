@@ -16,6 +16,8 @@ class SearchQuery(BaseModel):
     top_k: int = 5
     min_score: float | None = None
     generate_answer: bool = False
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=10, ge=1, le=100)
 
 
 class SearchResult(BaseModel):
@@ -27,3 +29,6 @@ class SearchResponse(BaseModel):
     results: list[SearchResult]
     query: str
     answer: str | None = None
+    page: int = 1
+    page_size: int = 10
+    total: int = 0
