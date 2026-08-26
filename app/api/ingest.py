@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, Request
 
 from app.config import settings
@@ -15,9 +17,7 @@ embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)
 
 
-@router.post("/documents")
-@limiter.limit("10/minute")
-async def ingest_documents(request: Request, payload: IngestRequest) -> dict[str, int]:
+async def _ingest_request(payload: IngestRequest) -> dict[str, int]:
     chunk_ids: list[str] = []
     chunk_texts: list[str] = []
     chunk_metadatas: list[dict] = []
@@ -46,6 +46,25 @@ async def ingest_documents(request: Request, payload: IngestRequest) -> dict[str
     )
 
     return {"ingested": len(payload.documents), "chunks": len(chunk_texts)}
+
+
+@router.post("/documents")
+@limiter.limit("10/minute")
+async def ingest_documents(request: Request, payload: IngestRequest) -> dict[str, int]:
+    return await _ingest_request(payload)
+
+
+@router.post("/documents/batch")
+@limiter.limit("10/minute")
+async def ingest_documents_batch(
+    request: Request, payload: list[IngestRequest]
+) -> dict[str, int]:
+    results = await asyncio.gather(*(_ingest_request(item) for item in payload))
+
+    return {
+        "ingested": sum(result["ingested"] for result in results),
+        "chunks": sum(result["chunks"] for result in results),
+    }
 
 
 @router.delete("/documents/{doc_id}")
