@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 from app.config import settings
 from app.core.embeddings import EmbeddingService
 from app.core.llm import LLMService
 from app.db.vector_store import VectorStore
 from app.models import Document, SearchQuery, SearchResponse, SearchResult
+from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)

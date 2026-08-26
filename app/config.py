@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     openai_api_key: str
+    api_key: str
     chroma_path: str = "./chroma_db"
     embedding_model: str = "text-embedding-3-small"
     top_k: int = 5

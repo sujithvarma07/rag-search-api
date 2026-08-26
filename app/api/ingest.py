@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 from app.config import settings
 from app.core.embeddings import EmbeddingService
 from app.db.vector_store import VectorStore
 from app.models import IngestRequest
+from app.utils.auth import verify_api_key
 from app.utils.chunking import chunk_text
 from app.utils.errors import DocumentNotFoundError
 from app.utils.limiter import limiter
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)
