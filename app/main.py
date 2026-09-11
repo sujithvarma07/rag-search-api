@@ -28,5 +28,15 @@ app.include_router(search.router)
 
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok"}
+def health_check() -> dict[str, str]:
+    try:
+        ingest.vector_store.collection.count()
+        chroma_status = "ok"
+    except Exception:
+        chroma_status = "unavailable"
+
+    return {
+        "status": "ok",
+        "chroma": chroma_status,
+        "version": app.version,
+    }
