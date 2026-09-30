@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    container_name: rag-search-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - CHROMA_PATH=/app/chroma_db
+    volumes:
+      - ./chroma_db:/app/chroma_db
+    restart: unless-stopped
