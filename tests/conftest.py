@@ -1,3 +1,9 @@
+import os
+
+os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
+os.environ.setdefault("API_KEY", "test-x-api-key")
+os.environ.setdefault("CHROMA_PATH", "./test_chroma_db")
+
 import pytest
 
 from app.config import Settings
