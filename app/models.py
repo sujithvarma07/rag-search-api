@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -18,6 +20,7 @@ class SearchQuery(BaseModel):
     generate_answer: bool = False
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=10, ge=1, le=100)
+    metadata_filter: dict[str, Any] | None = None
 
 
 class SearchResult(BaseModel):

@@ -28,10 +28,16 @@ class VectorStore:
             metadatas=metadatas,
         )
 
-    def query(self, embedding: list[float], n_results: int = 5) -> list[dict[str, Any]]:
+    def query(
+        self,
+        embedding: list[float],
+        n_results: int = 5,
+        where: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         results = self.collection.query(
             query_embeddings=[embedding],
             n_results=n_results,
+            where=where or None,
         )
 
         ids = results.get("ids", [[]])[0]

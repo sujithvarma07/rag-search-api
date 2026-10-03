@@ -23,7 +23,11 @@ async def search(request: Request, query: SearchQuery) -> SearchResponse:
     # fetch enough candidates from the vector store to cover the requested page,
     # falling back to top_k when it already covers the requested window
     fetch_count = max(query.top_k, query.page * query.page_size)
-    matches = vector_store.query(embedding=embeddings[0], n_results=fetch_count)
+    matches = vector_store.query(
+        embedding=embeddings[0],
+        n_results=fetch_count,
+        where=query.metadata_filter,
+    )
 
     results = [
         SearchResult(
