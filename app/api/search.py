@@ -8,14 +8,24 @@ from app.models import Document, SearchQuery, SearchResponse, SearchResult
 from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
 
-router = APIRouter(dependencies=[Depends(verify_api_key)])
+router = APIRouter(tags=["search"], dependencies=[Depends(verify_api_key)])
 
 embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)
 llm_service = LLMService(settings)
 
 
-@router.post("/search")
+@router.post(
+    "/search",
+    summary="Semantic search",
+    description=(
+        "Embeds the query and retrieves the most similar chunks from ChromaDB. "
+        "Supports metadata filtering, a minimum score threshold, offset-based "
+        "pagination, and optional LLM answer generation from the returned chunks. "
+        "Requires the `X-API-Key` header. Rate limited to 10 requests per minute."
+    ),
+    response_description="Paginated search results with optional generated answer",
+)
 @limiter.limit("10/minute")
 async def search(request: Request, query: SearchQuery) -> SearchResponse:
     embeddings = await embedding_service.embed([query.query])

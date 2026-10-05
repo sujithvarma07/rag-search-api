@@ -11,7 +11,7 @@ from app.utils.chunking import chunk_text
 from app.utils.errors import DocumentNotFoundError
 from app.utils.limiter import limiter
 
-router = APIRouter(dependencies=[Depends(verify_api_key)])
+router = APIRouter(tags=["documents"], dependencies=[Depends(verify_api_key)])
 
 embedding_service = EmbeddingService(settings)
 vector_store = VectorStore(settings)
@@ -48,13 +48,32 @@ async def _ingest_request(payload: IngestRequest) -> dict[str, int]:
     return {"ingested": len(payload.documents), "chunks": len(chunk_texts)}
 
 
-@router.post("/documents")
+@router.post(
+    "/documents",
+    summary="Ingest documents",
+    description=(
+        "Splits each document into overlapping chunks, embeds the chunks with the "
+        "configured OpenAI embedding model, and stores them in ChromaDB. Each chunk "
+        "keeps the original metadata plus `parent_id` and `chunk_index`. "
+        "Requires the `X-API-Key` header. Rate limited to 10 requests per minute."
+    ),
+    response_description="Number of documents ingested and chunks stored",
+)
 @limiter.limit("10/minute")
 async def ingest_documents(request: Request, payload: IngestRequest) -> dict[str, int]:
     return await _ingest_request(payload)
 
 
-@router.post("/documents/batch")
+@router.post(
+    "/documents/batch",
+    summary="Ingest documents in batch",
+    description=(
+        "Accepts a list of ingestion requests and processes them concurrently. "
+        "Each request is chunked, embedded, and stored the same way as `POST /documents`. "
+        "Requires the `X-API-Key` header. Rate limited to 10 requests per minute."
+    ),
+    response_description="Total documents ingested and chunks stored across all requests",
+)
 @limiter.limit("10/minute")
 async def ingest_documents_batch(
     request: Request, payload: list[IngestRequest]
@@ -67,7 +86,16 @@ async def ingest_documents_batch(
     }
 
 
-@router.delete("/documents/{doc_id}")
+@router.delete(
+    "/documents/{doc_id}",
+    summary="Delete a document",
+    description=(
+        "Removes every chunk belonging to the given parent document id from the "
+        "vector store. Returns 404 if no chunks exist for that id. "
+        "Requires the `X-API-Key` header."
+    ),
+    response_description="Number of chunks deleted",
+)
 async def delete_document(doc_id: str) -> dict[str, int]:
     deleted_chunks = vector_store.delete(doc_id)
 

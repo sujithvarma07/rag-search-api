@@ -14,6 +14,29 @@ app = FastAPI(
     title="RAG Search API",
     description="Semantic document search using retrieval-augmented generation",
     version="0.1.0",
+    contact={
+        "name": "Sujith Kakarlapudi",
+        "email": "sujithvarma07@gmail.com",
+        "url": "https://github.com/sujithvarma07/rag-search-api",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "documents",
+            "description": "Ingest, chunk, embed, and delete documents in the vector store.",
+        },
+        {
+            "name": "search",
+            "description": "Semantic search over ingested documents with optional answer generation.",
+        },
+        {
+            "name": "health",
+            "description": "Service and dependency health reporting.",
+        },
+    ],
 )
 
 app.state.limiter = limiter
@@ -27,7 +50,16 @@ app.include_router(ingest.router)
 app.include_router(search.router)
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    tags=["health"],
+    summary="Check service health",
+    description=(
+        "Reports overall API status, whether the ChromaDB collection is reachable, "
+        "and the running API version."
+    ),
+    response_description="Service status, chroma status, and api version",
+)
 def health_check() -> dict[str, str]:
     try:
         ingest.vector_store.collection.count()
